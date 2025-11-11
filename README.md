@@ -1,4 +1,5 @@
-# AI Agentic RAG System
+<<<<<<< HEAD
+# AI Agentic RAG System (Voice Chatbot)
 
 A modular AI Agentic RAG (Retrieval-Augmented Generation) system built with CrewAI, LangChain, Redis, and ChromaDB.
 
@@ -321,3 +322,6 @@ This project is provided as-is for educational and research purposes.
 ## Support
 
 For issues and questions, please check the logs first, then review the configuration settings.
+=======
+# voice-chatbot
+>>>>>>> origin/main
