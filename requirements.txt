@@ -1,5 +1,5 @@
 # AI Agentic RAG System Requirements
-# Python packages for CrewAI, LangChain, Redis, and ChromaDB integration
+# Python packages for CrewAI, LangChain, Redis, ChromaDB, and Voice Integration
 
 # Core AI/ML Framework
 crewai>=0.28.0
@@ -12,6 +12,7 @@ langchain-community>=0.0.20
 langchain-openai>=0.0.8
 langchain-anthropic>=0.1.0
 langchain-chroma>=0.1.0
+langchain-huggingface>=0.0.3
 langchain-text-splitters>=0.0.1
 
 # Vector Database and Embeddings
@@ -24,6 +25,11 @@ redis>=5.0.1
 # OpenAI and Anthropic API clients
 openai>=1.12.0
 anthropic>=0.18.0
+
+# Voice and Speech Processing
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+pyaudio>=0.2.11  # Required for microphone input
 
 # Data Processing and Scientific Computing
 numpy>=1.24.0
@@ -40,23 +46,23 @@ requests>=2.31.0
 # Configuration and Environment Management
 python-dotenv>=1.0.0
 
+# Network and Socket Programming
+# socket (built-in)
+# threading (built-in)
+# json (built-in)
+
 # System and Path Utilities
 pathlib>=1.0.1
 
-# JSON Processing (built-in but ensure compatibility)
-# json (built-in)
-
-# Date and Time Processing
+# Built-in Python modules (no installation required)
 # datetime (built-in)
-
-# UUID Generation
 # uuid (built-in)
-
-# Hashing and Crypto
 # hashlib (built-in)
-
-# Logging
 # logging (built-in)
+# time (built-in)
+# os (built-in)
+# sys (built-in)
+# argparse (built-in)
 
 # Type Hints and Runtime Support
 typing-extensions>=4.5.0

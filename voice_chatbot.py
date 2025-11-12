@@ -222,6 +222,20 @@ class VoiceChatbot:
             # CACHE MISS - Continue with normal flow
             print("🔄 Cache miss. Proceeding with full RAG processing...")
             
+            # CHECK FOR AMBIGUOUS/PARTIAL QUESTIONS - Stop processing if incomplete
+            print("🔍 Checking if question is complete and clear...")
+            ambiguity_check = self._check_question_completeness(user_query)
+            
+            if ambiguity_check.get("is_incomplete"):
+                # INCOMPLETE QUESTION - Ask for clarification and stop
+                print("⚠️ Question seems incomplete or ambiguous. Asking for clarification...")
+                clarification_request = ambiguity_check.get("clarification_request")
+                print(f"🤖 Clarification Request: {clarification_request}")
+                self.speak_text(clarification_request)
+                return True  # Don't proceed to RAG processing
+            
+            print("✅ Question is clear. Proceeding with RAG processing...")
+            
             # Single LLM call to check if it's a greeting or ending
             engaging_response = self._check_and_generate_engaging_response(user_query)
             
@@ -461,6 +475,78 @@ Examples:
             logger.error(f"Semantic matching failed: {e}")
             return None
     
+    def _check_question_completeness(self, user_query: str) -> dict:
+        """
+        Check if the user's question is complete and clear enough to process.
+        
+        Args:
+            user_query: User query string
+            
+        Returns:
+            Dict with 'is_incomplete' boolean and 'clarification_request' string
+        """
+        try:
+            from langchain_openai import ChatOpenAI
+            from langchain_core.messages import SystemMessage, HumanMessage
+            
+            # Use fast model for quick analysis
+            llm = ChatOpenAI(
+                model="gpt-4o-mini",
+                temperature=0.3,
+                max_tokens=100,
+                timeout=5
+            )
+            
+            system_prompt = """You are an AI assistant for TechGropse, a leading app development company.
+
+Analyze if the user query is complete and clear enough to provide a meaningful response.
+
+A query is INCOMPLETE/AMBIGUOUS if:
+- Contains only partial words or fragments (like "what", "how", "child", "cookies")
+- Is extremely vague without context (like "tell me about it", "what about this?")
+- Has unclear pronouns without antecedents ("What about them?", "How does it work?")
+- Is just a single word topic without a clear question
+
+A query is COMPLETE if:
+- Has a clear question structure ("What are the types of cookies?")
+- Provides enough context to understand intent ("How do you handle privacy?")
+- Is a proper greeting ("Hello", "Hi there")
+
+RESPOND with either:
+- "COMPLETE" if the query is clear enough
+- "INCOMPLETE: [specific clarification request]" if it needs more information
+
+Examples:
+- "cookies" → "INCOMPLETE: Could you please clarify what you'd like to know about cookies? Are you asking about our cookie policy, types of cookies we use, or something else?"
+- "what are cookies?" → "COMPLETE"
+- "child" → "INCOMPLETE: I'd be happy to help with child-related information. Could you please specify what you'd like to know about children? Are you asking about child safety, privacy policies for minors, or something else?"
+- "how does it work?" → "INCOMPLETE: Could you please specify what you're referring to? I'd be happy to explain how our services, policies, or features work if you could provide more context."
+"""
+
+            user_prompt = f'Query: "{user_query}"\nResponse:'
+
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt)
+            ]
+            
+            response = llm.invoke(messages)
+            result = response.content.strip()
+            
+            if result == "COMPLETE":
+                return {"is_incomplete": False, "clarification_request": None}
+            elif result.startswith("INCOMPLETE:"):
+                clarification = result.replace("INCOMPLETE:", "").strip()
+                return {"is_incomplete": True, "clarification_request": clarification}
+            else:
+                # Fallback - assume complete if unclear
+                return {"is_incomplete": False, "clarification_request": None}
+            
+        except Exception as e:
+            logger.error(f"Question completeness check failed: {e}")
+            # On error, assume complete to avoid blocking
+            return {"is_incomplete": False, "clarification_request": None}
+
     def _check_and_generate_engaging_response(self, user_query: str) -> str:
         """
         Single LLM call to check if query is greeting and generate engaging response if not.
